@@ -1,6 +1,15 @@
 {
   "endpoint_list": [
     {
+      "id": "ce43d210be3c0afd",
+      "name": "ads_counters",
+      "description": "user ads counters",
+      "method": "GET",
+      "version_released": "1.0.0",
+      "permission": "{\"require_identity\": false, \"private\": false}",
+      "enable": true
+    },
+    {
       "id": "0QJZ31dutPTSexxZ",
       "name": "api_version",
       "description": "returns the api version",
