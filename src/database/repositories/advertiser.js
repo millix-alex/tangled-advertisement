@@ -388,46 +388,21 @@ export default class Advertiser {
         });
     }
 
-    getAttributes(advertisement_guid) {
+    
+
+    getAdvertisementById(where) {
         return new Promise((resolve, reject) => {
             const {
-                sql,
-                parameters
-            } = Database.buildQuery('SELECT * FROM advertisement_advertiser.advertisement_attribute', {advertisement_guid: advertisement_guid});
-            this.database.all(sql, parameters, (err, data) => {
+                    sql,
+                    parameters
+                } = Database.buildQuery('SELECT * FROM advertisement_advertiser.advertisement',where);
+            this.database.get(sql, parameters, (err, advertisement) => {
                 if (err) {
                     return reject(err);
-                }             
-                resolve(data);               
+                }              
+                resolve(advertisement)
             });
         });
-    }
-
-    getAdvertisementById(advertisement_guid) {
-        return new Promise((resolve, reject) => {
-            const {
-                      sql,
-                      parameters
-                  } = Database.buildQuery('SELECT * FROM advertisement_advertiser.advertisement', {advertisement_guid: advertisement_guid});
-                    this.database.get(sql, parameters, (err, advertisement) => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    
-                    if(advertisement){
-                        this.getAttributes(advertisement_guid).then(attributes => {
-                            for(let attribute of attributes){
-                                advertisement[this.normalizationRepository.getType(attribute.attribute_type_guid)] = {
-                                    guid:attribute.advertisement_attribute_guid,
-                                    value:attribute.value
-                                }
-                            }
-                            resolve(advertisement);
-                        });
-                    }
-
-                });
-            });
     }
 
     updateAdvertisement(guid, type, category,

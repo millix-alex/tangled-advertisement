@@ -1,7 +1,6 @@
 import Endpoint from '../endpoint';
 import database from '../../database/database';
 
-
 /**
  * api get_advertisment_by_id
  */
@@ -25,22 +24,34 @@ class _ae60ccb743cd3c79 extends Endpoint {
         } = req.query;
 
         const advertiserRepository = database.getRepository('advertiser');
-        advertiserRepository.getAdvertisementById(advertisementGUID)
-                            .then(data => res.send(data))
-                            .catch(e => res.send({
-                                api_status : 'fail',
-                                api_message: `unexpected generic api error: (${e})`
-                            }));
-       /* advertiserRepository.getAdvertisement(advertisementGUID)
-        .then(advertisement => res.send({
-            api_status   : 'ok',
-            advertisement: advertisement
-        }))*/
-
-                        
+        advertiserRepository.getAdvertisementById({advertisement_guid: advertisementGUID})
+            .then(advertisement =>{            
+                if(advertisement){     
+                    let attributesRepository = database.getRepository('advertiser_attributes');       
+                    attributesRepository.get({advertisement_guid: advertisementGUID}).then(attributes => {   
+                        for (const attribute of attributes){
+                            advertisement[attribute.attribute_type] = attribute.value; 
+                        };
+                        res.send(advertisement)
+                    }).catch(e => res.send({
+                        api_status : 'fail',
+                        api_message: `unexpected generic api error: (${e})`
+                    }));
+                }
+                else{
+                    res.send({
+                        api_status : 'success',
+                        api_message: `advertisement not found`
+                    });
+                }
+            })
+            .catch(e => res.send({
+                api_status : 'fail',
+                api_message: `unexpected generic api error: (${e})`
+            }));
     }
-
 }
 
 
 export default new _ae60ccb743cd3c79();
+
