@@ -3,7 +3,7 @@ import database from '../../database/database';
 import peer from '../../network/peer';
 
 /**
- * api list_ad_by_consumer
+ * api list_ledger_details_by_advetisement
  */
 
 class _B1Gg7nMljx0yX9z9 extends Endpoint {
@@ -11,7 +11,7 @@ class _B1Gg7nMljx0yX9z9 extends Endpoint {
         super('B1Gg7nMljx0yX9z9');
     }
     /**
-     * returns list the last 24 hs of ads per consumer
+     * returns ledger details by advertisement
      * @param app
      * @param req
      * @param res

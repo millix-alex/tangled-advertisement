@@ -74,8 +74,8 @@
     },    
     {
       "id": "B1Gg7nMljx0yX9z9",
-      "name": "list_ad_by_consumer",
-      "description": "list ads by consumer",
+      "name": "list_ledger_details_by_advetisement",
+      "description": "ledger details by advertisement",
       "method": "GET",
       "version_released": "1.0.0",
       "permission": "{\"require_identity\": false, \"private\": false}",
