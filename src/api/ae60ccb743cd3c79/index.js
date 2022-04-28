@@ -30,9 +30,16 @@ class _ae60ccb743cd3c79 extends Endpoint {
                     let attributesRepository = database.getRepository('advertiser_attributes');       
                     attributesRepository.get({advertisement_guid: advertisementGUID}).then(attributes => {   
                         for (const attribute of attributes){
-                            advertisement[attribute.attribute_type] = attribute.value; 
-                        };
-                        res.send(advertisement)
+                            advertisement[attribute.attribute_type] = {
+                                value:attribute.value,
+                                guid:attribute.advertisement_attribute_guid
+                            } 
+                        };                        
+                        res.send({
+                            api_status          : 'ok',
+                            api_message         : 'fetch successfull',
+                            advertisement       : advertisement
+                        })
                     }).catch(e => res.send({
                         api_status : 'fail',
                         api_message: `unexpected generic api error: (${e})`
