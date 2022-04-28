@@ -71,6 +71,15 @@
       "version_released": "1.0.0",
       "permission": "{\"require_identity\": false, \"private\": false}",
       "enable": true
+    },    
+    {
+      "id": "B1Gg7nMljx0yX9z9",
+      "name": "list_ad_by_consumer",
+      "description": "list ads by consumer",
+      "method": "GET",
+      "version_released": "1.0.0",
+      "permission": "{\"require_identity\": false, \"private\": false}",
+      "enable": true
     },
     {
       "id": "jbUwv8IG6XeYMqCq",

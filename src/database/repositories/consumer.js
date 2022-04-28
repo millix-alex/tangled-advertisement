@@ -73,37 +73,75 @@ export default class Consumer {
                 if (data.length === 0) {
                     return resolve(data);
                 }
-                const advertisements = {};
-                data.forEach(advertisement => {
-                    advertisements[advertisement.advertisement_guid] = {
-                        ...advertisement,
-                        attributes: []
-                    };
-                });
 
-                const advertisementGUIDs = _.keys(advertisements);
-                this.database.all(`SELECT *
-                                   FROM advertisement_consumer.advertisement_attribute
-                                   WHERE advertisement_guid IN (${advertisementGUIDs.map(() => '?').join(',')})`, advertisementGUIDs, (err, data) => {
-                    if (err) {
-                        return reject(err);
-                    }
-
-                    data.forEach(attribute => {
-                        advertisements[attribute.advertisement_guid].attributes.push({
-                            attribute_guid: attribute.advertisement_attribute_guid,
-                            attribute_type: this.normalizationRepository.getType(attribute.attribute_type_guid),
-                            object        : this.normalizationRepository.getType(attribute.object_guid),
-                            value         : attribute.value
-                        });
-                    });
-
-                    resolve(_.values(advertisements));
+                this.getAttributes(data).then(data => {
+                    resolve(data);
+                }).catch(err => {
+                    reject(err);
                 });
 
             });
         });
     }
+
+    getAttributes(data) {
+        return new Promise((resolve, reject) => {
+
+            const advertisements = {};
+            data.forEach(advertisement => {
+                advertisements[advertisement.advertisement_guid] = {
+                    ...advertisement,
+                    attributes: []
+                };
+            });
+
+            const advertisementGUIDs = _.keys(advertisements);
+            this.database.all(`SELECT *
+                                FROM advertisement_consumer.advertisement_attribute
+                                WHERE advertisement_guid IN (${advertisementGUIDs.map(() => '?').join(',')})`, advertisementGUIDs, (err, data) => {
+                if (err) {
+                    return reject(err);
+                }
+
+                data.forEach(attribute => {
+                    advertisements[attribute.advertisement_guid][this.normalizationRepository.getType(attribute.attribute_type_guid)] =  attribute.value;
+                });
+
+                resolve(_.values(advertisements));
+            });
+        });
+    
+
+    }
+
+    getAdsLedgerDetails(where) {
+        return new Promise((resolve, reject) => {
+            const {
+                sql,
+                parameters
+            } = Database.buildQuery(`SELECT *, 
+            advertisement_consumer.advertisement_queue.advertisement_guid as advertisement_guid,
+            advertisement_consumer.settlement_ledger.create_date as payment_date, 
+            advertisement_consumer.advertisement_queue.create_date as presentation_date  
+            FROM advertisement_consumer.advertisement_queue JOIN advertisement_consumer.settlement_ledger ON advertisement_consumer.advertisement_queue.ledger_guid = advertisement_consumer.settlement_ledger.ledger_guid`, where);
+                        
+            this.database.all(sql, parameters, (err, data) => {
+                if (err) {
+                    return reject(err);
+                }
+
+                if (data.length === 0){
+                    return resolve(data);
+                }
+                
+                this.getAttributes(data).then(data => {
+                    resolve(data);
+                }).catch(err => {
+                    reject(err);
+                });
+            });
+        });     
+    }    
 
     getAdvertisement(where) {
         return new Promise((resolve, reject) => {
