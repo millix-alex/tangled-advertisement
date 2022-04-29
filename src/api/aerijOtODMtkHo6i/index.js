@@ -44,5 +44,6 @@ class _aerijOtODMtkHo6i extends Endpoint {
     }
 }
 
-
 export default new _aerijOtODMtkHo6i();
+
+
