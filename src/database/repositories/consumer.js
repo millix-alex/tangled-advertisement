@@ -69,52 +69,12 @@ export default class Consumer {
                 if (err) {
                     return reject(err);
                 }
-
-                if (data.length === 0) {
-                    return resolve(data);
-                }
-
-                this.getAttributes(data).then(data => {
-                    resolve(data);
-                }).catch(err => {
-                    reject(err);
-                });
-
+                return resolve(data);
             });
         });
     }
 
-    getAttributes(data) {
-        return new Promise((resolve, reject) => {
-
-            const advertisements = {};
-            data.forEach(advertisement => {
-                advertisements[advertisement.advertisement_guid] = {
-                    ...advertisement,
-                    attributes: []
-                };
-            });
-
-            const advertisementGUIDs = _.keys(advertisements);
-            this.database.all(`SELECT *
-                                FROM advertisement_consumer.advertisement_attribute
-                                WHERE advertisement_guid IN (${advertisementGUIDs.map(() => '?').join(',')})`, advertisementGUIDs, (err, data) => {
-                if (err) {
-                    return reject(err);
-                }
-
-                data.forEach(attribute => {
-                    advertisements[attribute.advertisement_guid][this.normalizationRepository.getType(attribute.attribute_type_guid)] =  attribute.value;
-                });
-
-                resolve(_.values(advertisements));
-            });
-        });
-    
-
-    }
-
-    getAdsLedgerDetails(where) {
+    getAdsLedger(where = "") {
         return new Promise((resolve, reject) => {
             const {
                 sql,
@@ -129,19 +89,11 @@ export default class Consumer {
                 if (err) {
                     return reject(err);
                 }
-
-                if (data.length === 0){
-                    return resolve(data);
-                }
-                
-                this.getAttributes(data).then(data => {
-                    resolve(data);
-                }).catch(err => {
-                    reject(err);
-                });
+                resolve(data);                
             });
         });     
     }    
+    
 
     getAdvertisement(where) {
         return new Promise((resolve, reject) => {
