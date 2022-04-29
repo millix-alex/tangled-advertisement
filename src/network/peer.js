@@ -2,7 +2,7 @@ import eventBus from '../core/event-bus';
 import network from './network';
 import database, {Database} from '../database/database';
 import task from '../core/task';
-import config, {MODE_TEST} from '../config/config';
+import config from '../config/config';
 import async from 'async';
 import mutex from '../core/mutex';
 import client from '../api/client';
@@ -46,6 +46,9 @@ export class Peer {
         console.log(`[peer] new advertisements ${JSON.stringify(advertisements, null, 4)}`);
         const consumerRepository = database.getRepository('consumer');
         async.eachSeries(advertisements, (advertisement, callback) => {
+            if (advertisement.bid_impression_mlx < config.ADS_TRANSACTION_AMOUNT_MIN) {
+                return callback();
+            }
             consumerRepository.addAdvertisement(advertisement, nodeID, nodeIPAddress, nodePort, requestGUID)
                               .then(() => callback())
                               .catch(() => callback());
@@ -75,6 +78,9 @@ export class Peer {
         console.log(`[peer] new advertisements ${JSON.stringify(advertisements, null, 4)}`);
         const consumerRepository = database.getRepository('consumer');
         async.eachSeries(advertisements, (advertisement, callback) => {
+            if (advertisement.bid_impression_mlx < config.ADS_TRANSACTION_AMOUNT_MIN) {
+                return callback();
+            }
             consumerRepository.addAdvertisement(advertisement, nodeID, nodeIPAddress, nodePort, advertisement.advertisement_request_guid)
                               .then(() => callback())
                               .catch(() => callback());
@@ -88,7 +94,7 @@ export class Peer {
             from   : ws.node
         });
 
-        network.addNode(peer.node_prefix, peer.node_address, peer.node_port, peer.node_id);
+        network.addNode(peer.node_prefix, peer.node_address, peer.node_port, peer.node_id, true);
     }
 
     _onAdvertisementSyncRequest(data, ws) {
@@ -169,8 +175,30 @@ export class Peer {
                             });
     }
 
+    _onPeerConnection(ws) {
+        this.sendPeerList(ws);
+        this.notifyNewPeer(ws);
+    }
+
+    _onPeerDisconnection(ws) {
+        if (ws.connectionID && !network.getWebSocketByConnectionID(ws.connectionID)) {
+            cache.removeCacheItem('peer', `peer_list_${ws.connectionID}`);
+        }
+    }
+
     sendPeerList(ws) {
+        let cachedData = cache.getCacheItem('peer', `peer_list_${ws.connectionID}`);
+        if (!cachedData) {
+            cachedData = {};
+        }
+
         for (let peerWS of network.registeredClients) {
+            if (!peerWS.connectionID || !!cachedData[peerWS.connectionID]) {
+                continue;
+            }
+
+            cachedData[peerWS.connectionID] = Date.now();
+
             const payload = {
                 type   : 'new_peer',
                 content: {
@@ -191,25 +219,36 @@ export class Peer {
                 return;
             }
         }
+
+        cache.setCacheItem('peer', `peer_list_${ws.connectionID}`, cachedData, Number.MAX_SAFE_INTEGER);
     }
 
-    notifyNewPeer(ws) {
+    notifyNewPeer(peerWS) {
         const payload = {
             type   : 'new_peer',
             content: {
-                node_id     : ws.nodeID,
-                node_prefix : ws.nodePrefix,
-                node_address: ws.nodeIPAddress,
-                node_port   : ws.nodePort
+                node_id     : peerWS.nodeID,
+                node_prefix : peerWS.nodePrefix,
+                node_address: peerWS.nodeIPAddress,
+                node_port   : peerWS.nodePort
             }
         };
         const data    = JSON.stringify(payload);
         network.registeredClients.forEach(ws => {
-            const key = `peer_notify_${ws.nodeID}_${payload.content.node_id}`;
-            if (cache.getCacheItem('peer', key)) {
+            if (!ws.connectionID) {
                 return;
             }
-            cache.setCacheItem('peer', key, true, Number.MAX_SAFE_INTEGER);
+            const cachedData = cache.getCacheItem('peer', `peer_list_${ws.connectionID}`);
+            if (!cachedData) {
+                return;
+            }
+
+            if (!!cachedData[peerWS.connectionID] && cachedData[peerWS.connectionID] > Date.now() - 600000) {
+                return;
+            }
+
+            cachedData[peerWS.connectionID] = Date.now();
+
             try {
                 ws.send(data);
             }
@@ -529,19 +568,21 @@ export class Peer {
         eventBus.on('advertisement_sync', this._onSyncAdvertisement.bind(this));
 
         //out
-        eventBus.on('peer_connection', (ws) => {
-            this.sendPeerList(ws);
-            this.notifyNewPeer(ws);
-        });
-        task.scheduleTask('peer-request-advertisement', () => this.requestAdvertisement(), 10000);
+        eventBus.on('peer_connection', this._onPeerConnection.bind(this));
+
+        //other
+        eventBus.on('peer_connection_closed', this._onPeerDisconnection.bind(this));
+
+        task.scheduleTask('peer-request-advertisement-once-on-boot', () => this.requestAdvertisement(), 15000, false, true);
+        task.scheduleTask('peer-request-advertisement', () => this.requestAdvertisement(), 60000);
         task.scheduleTask('peer-sync-advertisement', () => this.requestAdvertisementSync(), 600000);
         task.scheduleTask('advertisement-payment-process', () => this.processAdvertisementPayment(), 60000);
         task.scheduleTask('advertisement-queue-prune', () => this.pruneAdvertisementQueue(), 60000);
         task.scheduleTask('advertisement-request-no-payment-request-prune', () => this.pruneAdvertisementRequestWithNoPaymentRequestQueue(), 60000);
         return Utils.loadNodeKeyAndCertificate()
                     .then(({
-                               node_id        : nodeID,
-                               node_signature : nodeSignature
+                               node_id       : nodeID,
+                               node_signature: nodeSignature
                            }) => {
                         this.nodeID = nodeID;
                         client.loadCredentials(nodeID, nodeSignature);
@@ -564,6 +605,9 @@ export class Peer {
         eventBus.removeAllListeners('advertisement_payment_request');
         eventBus.removeAllListeners('advertisement_payment_response');
         eventBus.removeAllListeners('peer_connection');
+        eventBus.removeAllListeners('peer_connection_closed');
+
+        task.removeTask('peer-request-advertisement-once-on-boot');
         task.removeTask('peer-request-advertisement');
         task.removeTask('peer-sync-advertisement');
         task.removeTask('advertisement-payment-process');
