@@ -10,7 +10,7 @@ export default class ConsumerAttributes {
         this.normalizationRepository = repository;
     }   
 
-    get(where) {
+    getAttributes(where) {
         return new Promise((resolve, reject) => {
             const {
                     sql,
@@ -61,6 +61,5 @@ export default class ConsumerAttributes {
                 resolve(_.values(advertisements));
             });
         });
-    
     }
 }

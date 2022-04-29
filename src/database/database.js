@@ -1,7 +1,7 @@
 import config from '../config/config';
 import {
     Advertiser, API, Consumer, Keychain, Language, Node, Normalization, Schema,
-    Wallet, Config, ConsumerAttributes
+    Wallet, Config, AdvertiserAttributes, ConsumerAttributes
 } from './repositories/repositories';
 import mutex from '../core/mutex';
 import eventBus from '../core/event-bus';
@@ -388,8 +388,11 @@ export class Database {
         this.repositories['wallet']        = new Wallet(this.database);
         this.repositories['config']        = new Config(this.database);
 
-        this.repositories['consumer_attributes']    = new ConsumerAttributes(this.database);
+        this.repositories['consumer_attributes'] = new ConsumerAttributes(this.database);
         this.repositories['consumer_attributes'].setNormalizationRepository(this.repositories['normalization']);
+
+        this.repositories['advertiser_attributes'] = new AdvertiserAttributes(this.database);
+        this.repositories['advertiser_attributes'].setNormalizationRepository(this.repositories['normalization']);
 
         this.repositories['node'] = new Node(this.database);
         this.repositories['node'].setNormalizationRepository(this.repositories['normalization']);
