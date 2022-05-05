@@ -1,9 +1,8 @@
 import {Database} from '../database';
 
 export default class ConsumerAttributes {
-    constructor(database,normalizationRepository) {
+    constructor(database) {
         this.database = database;
-        this.normalizationRepository = normalizationRepository;
     }
 
     setNormalizationRepository(repository) {
@@ -59,6 +58,27 @@ export default class ConsumerAttributes {
                 });
 
                 resolve(_.values(advertisements));
+            });
+        });
+    }
+
+    delete(where) {
+        return new Promise((resolve, reject) => {
+
+            if(!where){
+                return reject("At least one condition must be specified");
+            }
+
+            const {
+                      sql,
+                      parameters
+                  } = Database.buildQuery('DELETE FROM advertisement_consumer.advertisement_attribute', where);
+            this.database.run(sql, parameters, (err) => {
+                if (err) {
+                    console.log('[database] error', err);
+                    return reject(err);
+                }
+                resolve();
             });
         });
     }

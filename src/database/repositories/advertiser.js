@@ -405,6 +405,21 @@ export default class Advertiser {
         });
     }
 
+    getAdvertisementById(where) {
+        return new Promise((resolve, reject) => {
+            const {
+                    sql,
+                    parameters
+                } = Database.buildQuery('SELECT * FROM advertisement_advertiser.advertisement',where);
+            this.database.get(sql, parameters, (err, advertisement) => {
+                if (err) {
+                    return reject(err);
+                }              
+                resolve(advertisement)
+            });
+        });
+    }
+
     updateAdvertisement(guid, type, category,
         name, url, fundingAddress, budgetUSD, budgetMLX,
         bidImpressionUSD, bidImpressionMLX, expiration, attributes) {
@@ -826,6 +841,28 @@ export default class Advertiser {
                     return reject(err);
                 }
 
+                resolve();
+            });
+        });
+    }
+
+    delete(where) {
+        
+        return new Promise((resolve, reject) => {
+
+            if(!where){
+                return reject("At least one condition must be specified");
+            }
+            
+            const {
+                      sql,
+                      parameters
+                  } = Database.buildQuery('DELETE FROM advertisement_advertiser.advertisement', where);
+            this.database.run(sql, parameters, (err) => {
+                if (err) {
+                    console.log('[database] error', err);
+                    return reject(err);
+                }
                 resolve();
             });
         });

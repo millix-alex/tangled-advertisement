@@ -116,6 +116,15 @@
       "version_released": "1.0.0",
       "permission": "{\"require_identity\": false, \"private\": false}",
       "enable": true
+    },
+    {
+      "id": "aa74f91cfcf3ddae",	
+      "name": "remove_ad",
+      "description": "remove add",
+      "method": "GET",
+      "version_released": "1.0.0",
+      "permission": "{\"require_identity\": false, \"private\": false}",
+      "enable": true
     }
   ]
 }

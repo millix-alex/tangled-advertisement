@@ -1,7 +1,7 @@
 import config from '../config/config';
 import {
     Advertiser, API, Consumer, Keychain, Language, Node, Normalization, Schema,
-    Wallet, Config, AdvertiserAttributes
+    Wallet, Config, AdvertiserAttributes, ConsumerAttributes, Balance, BlockLog, ClickLog, Ledger, RequestLog
 } from './repositories/repositories';
 import mutex from '../core/mutex';
 import eventBus from '../core/event-bus';
@@ -391,6 +391,9 @@ export class Database {
         this.repositories['advertiser_attributes']    = new AdvertiserAttributes(this.database);
         this.repositories['advertiser_attributes'].setNormalizationRepository(this.repositories['normalization']);
 
+        this.repositories['consumer_attributes']    = new ConsumerAttributes(this.database);
+        this.repositories['consumer_attributes'].setNormalizationRepository(this.repositories['normalization']);
+
         this.repositories['node'] = new Node(this.database);
         this.repositories['node'].setNormalizationRepository(this.repositories['normalization']);
 
@@ -401,6 +404,17 @@ export class Database {
 
         this.repositories['consumer'] = new Consumer(this.database);
         this.repositories['consumer'].setNormalizationRepository(this.repositories['normalization']);
+        
+        this.repositories['balance'] = new Balance(this.database);
+
+        this.repositories['block_log'] = new BlockLog(this.database);
+
+        this.repositories['click_log'] = new ClickLog(this.database);
+
+        this.repositories['ledger'] = new Ledger(this.database);  
+        
+        this.repositories['request_log'] = new RequestLog(this.database);
+        
         return this.repositories['normalization'].load();
     }
 
