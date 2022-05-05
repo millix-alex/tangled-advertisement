@@ -1,20 +1,16 @@
 import {Database} from '../database';
 
-export default class AdvertiserAttributes {
+export default class ClickLog {
     constructor(database) {
         this.database = database;
     }
-
-    setNormalizationRepository(repository) {
-        this.normalizationRepository = repository;
-    }   
 
     get(where) {
         return new Promise((resolve, reject) => {
             const {
                     sql,
                     parameters
-                } = Database.buildQuery('SELECT * FROM advertisement_advertiser.advertisement_attribute',where);
+                } = Database.buildQuery('SELECT * FROM advertisement_advertiser.advertisement_click_log',where);
             this.database.all(sql, parameters, (err, data) => {
                 if (err) {
                     return reject(err);
@@ -39,7 +35,7 @@ export default class AdvertiserAttributes {
             const {
                       sql,
                       parameters
-                  } = Database.buildQuery('DELETE FROM advertisement_advertiser.advertisement_attribute', where);
+                  } = Database.buildQuery('DELETE FROM advertisement_advertiser.advertisement_click_log', where);
             this.database.run(sql, parameters, (err) => {
                 if (err) {
                     console.log('[database] error', err);
