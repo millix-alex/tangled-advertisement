@@ -2,14 +2,13 @@ import Endpoint from '../endpoint';
 import database from '../../database/database';
 import peer from '../../network/peer';
 
-
 /**
  * api list_ad
  */
 
-class _aerijOtODMtkHo6i extends Endpoint {
+class _ce43d210be3c0afd extends Endpoint {
     constructor() {
-        super('aerijOtODMtkHo6i');
+        super('ce43d210be3c0afd');
     }
 
     /**
@@ -19,7 +18,6 @@ class _aerijOtODMtkHo6i extends Endpoint {
      * @param res
      */
     handler(app, req, res) {
-
         if (peer.protocolAddressKeyIdentifier === null) {
             return res.send({
                 api_status : 'fail',
@@ -30,19 +28,18 @@ class _aerijOtODMtkHo6i extends Endpoint {
         let pipeline = Promise.resolve();
         pipeline.then(() => {
             const advertiserRepository = database.getRepository('advertiser');
-            const fundingAddress       = `${peer.protocolAddressKeyIdentifier}0a0${peer.protocolAddressKeyIdentifier}`;
-            return advertiserRepository.getAdvertisementByProtocolAddressFunding(fundingAddress).then(advertisement => res.send({
-                    api_status        : 'success',
-                    advertisement_list: advertisement
+            return advertiserRepository.getAdvertisementRunningCounters().then(counters => res.send({
+                    api_status        : 'ok',
+                    api_message       : 'fetch successfull',
+                    counters          : counters
                 }
             ));
         }).catch(e => res.send({
             api_status : 'fail',
             api_message: `unexpected generic api error: (${e})`
         }));
+    
     }
 }
 
-export default new _aerijOtODMtkHo6i();
-
-
+export default new _ce43d210be3c0afd();

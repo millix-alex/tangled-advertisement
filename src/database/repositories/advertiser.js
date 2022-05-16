@@ -812,7 +812,7 @@ export default class Advertiser {
                 resolve();
             });
         });
-    }
+    }    
 
     resetAd(where) {
         return new Promise((resolve, reject) => {
@@ -827,6 +827,21 @@ export default class Advertiser {
                 }
 
                 resolve();
+            });
+        });
+    }
+
+    getAdvertisementRunningCounters() {
+        return new Promise((resolve, reject) => {
+            this.database.get('SELECT COUNT(*) as total, COUNT(CASE WHEN status = 1 THEN 1 END) as active, COUNT(CASE WHEN status = 0 THEN 1 END) as paused FROM advertisement_advertiser.advertisement',  (err, data) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve({
+                    total   :data['total'],
+                    active  :data['active'],
+                    paused  :data['paused']
+                });	
             });
         });
     }
