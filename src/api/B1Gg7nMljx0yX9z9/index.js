@@ -13,7 +13,7 @@ class _B1Gg7nMljx0yX9z9 extends Endpoint {
     }
 
     /**
-     * returns ledger details by advertisement
+     * returns advertisement_consumer_settlement_ledger_list
      * @param app
      * @param req
      * @param res
