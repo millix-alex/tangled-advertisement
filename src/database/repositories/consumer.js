@@ -1,5 +1,5 @@
 import {Database} from '../database';
-import _ from 'lodash'
+import _ from 'lodash';
 
 export default class Consumer {
     constructor(database) {
@@ -74,26 +74,26 @@ export default class Consumer {
         });
     }
 
-    getAdsLedger(where = "") {
+    getAdvertisementWithSettlementLedgerList(where = '') {
         return new Promise((resolve, reject) => {
             const {
-                sql,
-                parameters
-            } = Database.buildQuery(`SELECT *, 
+                      sql,
+                      parameters
+                  } = Database.buildQuery(`SELECT *, 
             advertisement_consumer.advertisement_queue.advertisement_guid as advertisement_guid,
             advertisement_consumer.settlement_ledger.create_date as payment_date, 
             advertisement_consumer.advertisement_queue.create_date as presentation_date  
-            FROM advertisement_consumer.advertisement_queue JOIN advertisement_consumer.settlement_ledger ON advertisement_consumer.advertisement_queue.ledger_guid = advertisement_consumer.settlement_ledger.ledger_guid`, where);
-                        
+            FROM advertisement_consumer.settlement_ledger 
+            JOIN advertisement_consumer.advertisement_queue ON advertisement_consumer.settlement_ledger.ledger_guid = advertisement_consumer.advertisement_queue.ledger_guid`, where);
+
             this.database.all(sql, parameters, (err, data) => {
                 if (err) {
                     return reject(err);
                 }
-                resolve(data);                
+                resolve(data);
             });
-        });     
-    }    
-    
+        });
+    }
 
     getAdvertisement(where) {
         return new Promise((resolve, reject) => {
